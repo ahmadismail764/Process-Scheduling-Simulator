@@ -1,39 +1,25 @@
 
-public class Process {
+public class Process extends Thread {
 
-    private String name;
-    private int arrivalTime, burstTime, remainingTime, priority;
+    private final int arrivalTime;
+    private final int burstTime;
+    private int remainingTime;
+    private int quantum;
 
-    public Process(String name, int arrivalTime, int burstTime, int priority) {
-        this.name = name;
+    public Process(String name, int arrivalTime, int burstTime, int priority, int quantum) {
+        super(name);
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
-        this.priority = priority;
         this.remainingTime = burstTime;
+        this.quantum = quantum;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getArrivalTime() {
+    public final int getArrivalTime() {
         return arrivalTime;
     }
 
-    public void setArrivalTime(int arrivalTime) {
-        this.arrivalTime = arrivalTime;
-    }
-
-    public int getBurstTime() {
+    public final int getBurstTime() {
         return burstTime;
-    }
-
-    public void setBurstTime(int burstTime) {
-        this.burstTime = burstTime;
     }
 
     public int getRemainingTime() {
@@ -44,11 +30,20 @@ public class Process {
         this.remainingTime = remainingTime;
     }
 
-    public int getPriority() {
-        return priority;
+    public int getQuantum() {
+        return quantum;
     }
 
-    public void setPriority(int priority) {
-        this.priority = priority;
+    public void setQuantum(int quantum) {
+        this.quantum = quantum;
+    }
+
+    @Override
+    public void run() {
+        try {
+            Thread.sleep(arrivalTime + burstTime);
+        } catch (InterruptedException e) {
+            System.err.println("Process interrupted: " + e.getMessage());
+        }
     }
 }
