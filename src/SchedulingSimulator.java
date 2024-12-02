@@ -66,42 +66,4 @@ public class SchedulingSimulator {
             process.setFcai(factor);
         }
     }
-
-    public static void takeProcessesfromUser() {
-        List<Process> processList = new ArrayList<>();
-        try (Scanner scanner = new Scanner(System.in)) {
-            System.out.print("Enter the number of processes: ");
-            int numberOfProcesses = scanner.nextInt();
-
-            // Consume the newline character
-            scanner.nextLine();
-
-            for (int i = 1; i <= numberOfProcesses; i++) {
-                System.out.println("\nEnter details for Process " + i + ":");
-
-                System.out.print("Enter process name: ");
-                String name = scanner.nextLine();
-
-                System.out.print("Enter arrival time: ");
-                int arrivalTime = scanner.nextInt();
-
-                System.out.print("Enter burst time: ");
-                int burstTime = scanner.nextInt();
-
-                System.out.print("Enter quantum: ");
-                int quantum = scanner.nextInt();
-
-                System.out.print("Enter priority (1 to 10): ");
-                int priority = scanner.nextInt();
-
-                // Consume the newline character after integer input
-                scanner.nextLine();
-
-                // Create the process and add it to the list
-                Process process = new Process(name, arrivalTime, burstTime, quantum, priority);
-                processList.add(process);
-                System.out.println("Process added successfully!");
-            }
-        }
-    }
 }

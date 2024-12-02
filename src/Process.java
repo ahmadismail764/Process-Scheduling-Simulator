@@ -26,6 +26,10 @@ public class Process extends Thread {
         return remainingTime;
     }
 
+    public int getQuantum() {
+        return quantum;
+    }
+
     public void setRemainingTime(int remainingTime) {
         this.remainingTime = remainingTime;
     }
