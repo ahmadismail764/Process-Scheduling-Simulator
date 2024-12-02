@@ -1,7 +1,8 @@
 
 public class Process extends Thread {
 
-    private final int arrivalTime, burstTime, quantum;
+    private final int arrivalTime, burstTime;
+    private int quantum;
     private int remainingTime;
     private double fcai_factor = 0;
 
@@ -40,6 +41,10 @@ public class Process extends Thread {
 
     public double getFcai() {
         return fcai_factor;
+    }
+
+    public void setQuantum(int quantum) {
+        this.quantum = quantum;
     }
 
     @Override
