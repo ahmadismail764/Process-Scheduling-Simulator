@@ -8,7 +8,7 @@ public class Process extends Thread {
     private int remainingTime;
     private double fcai_factor = 0;
 
-    public Process(String name, String color, int arrivalTime, int burstTime, int quantum) {
+    public Process(String name, String color, int arrivalTime, int burstTime, int priority, int quantum) {
         super(name);
         this.color = color;
         this.arrivalTime = arrivalTime;
