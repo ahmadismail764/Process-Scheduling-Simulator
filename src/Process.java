@@ -2,17 +2,25 @@
 public class Process extends Thread {
 
     private final int arrivalTime, burstTime;
+    private final String color;
+
     private int quantum;
     private int remainingTime;
     private double fcai_factor = 0;
 
-    public Process(String name, int arrivalTime, int burstTime, int quantum, int priority) {
+    public Process(String name, String color, int arrivalTime, int burstTime, int quantum) {
         super(name);
+        this.color = color;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.remainingTime = burstTime;
         this.quantum = quantum;
         this.setPriority(priority);
+    }
+
+    // Getters start here-------------------------------------------------
+    public final String getColor() {
+        return color;
     }
 
     public final int getArrivalTime() {
@@ -30,7 +38,9 @@ public class Process extends Thread {
     public int getQuantum() {
         return quantum;
     }
+    // Getters end here-------------------------------------------------
 
+    // Setters start here-------------------------------------------------
     public void setRemainingTime(int remainingTime) {
         this.remainingTime = remainingTime;
     }
@@ -47,6 +57,7 @@ public class Process extends Thread {
         this.quantum = quantum;
     }
 
+    // Setters end here-------------------------------------------------
     @Override
     public void run() {
         try {
