@@ -36,6 +36,9 @@ public class Process {
     public int getQuantum() {
         return quantum;
     }
+    public int getPriority() {
+        return priority;
+    }
     // Getters end here-------------------------------------------------
 
     // Setters start here-------------------------------------------------
