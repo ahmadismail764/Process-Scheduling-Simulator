@@ -26,7 +26,9 @@ public class SchedulingSimulator {
                 int burstTime = scanner.nextInt();
                 System.out.print("Process Priority Number: ");
                 int priority = scanner.nextInt();
-                Process process = new Process(name, color, arrivalTime, burstTime, priority);
+                System.out.print("Process Quantum: ");
+                int quantum = scanner.nextInt();
+                Process process = new Process(name, color, arrivalTime, burstTime, priority, quantum);
                 processList.add(process);
             }
         }

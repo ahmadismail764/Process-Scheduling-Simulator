@@ -61,8 +61,9 @@ public class Process extends Thread {
     @Override
     public void run() {
         try {
-            Thread.sleep(arrivalTime + burstTime);
-        } catch (InterruptedException e) {
+            System.out.println("Simulating a thread run.");
+
+        } catch (Exception e) {
             System.err.println("Process interrupted: " + e.getMessage());
         }
     }
