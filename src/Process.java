@@ -1,21 +1,19 @@
 
-public class Process extends Thread {
+public class Process {
 
     private final int arrivalTime, burstTime;
-    private final String color;
-
-    private int quantum;
-    private int remainingTime;
+    private final String name, color;
+    private int quantum, remainingTime, priority;
     private double fcai_factor = 0;
 
     public Process(String name, String color, int arrivalTime, int burstTime, int priority, int quantum) {
-        super(name);
+        this.name = name;
         this.color = color;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.remainingTime = burstTime;
         this.quantum = quantum;
-        this.setPriority(priority);
+        this.priority = priority;
     }
 
     // Getters start here-------------------------------------------------
@@ -58,13 +56,4 @@ public class Process extends Thread {
     }
 
     // Setters end here-------------------------------------------------
-    @Override
-    public void run() {
-        try {
-            System.out.println("Simulating a thread run.");
-
-        } catch (Exception e) {
-            System.err.println("Process interrupted: " + e.getMessage());
-        }
-    }
 }
