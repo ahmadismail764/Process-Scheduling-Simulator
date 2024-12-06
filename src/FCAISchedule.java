@@ -18,9 +18,24 @@ public class FCAISchedule implements ScheduleTechnique {
 
     public static void factorSetter(List<Process> processes, int v1, int v2) {
         for (Process process : processes) {
-            double fact = (10 - process.getPriority()) + (process.getArrivalTime() / v1) + (process.getBurstTime() / v2);
-            int factor = (int) Math.ceil(fact);
-            process.setFcai(factor);
+            process.setFcai(v1, v2);
+        }
+    }
+
+    public static void executeProcess(PriorityQueue<Process> readyQueue, int v1, int v2, int currentTime, List<Process> done) {
+        Process currentProcess = readyQueue.poll();
+        for (Process process : readyQueue) {
+            process.incrementWaitTime();
+        }
+        currentProcess.decrementRemainingTime();
+        currentProcess.updateQuantum();
+        currentProcess.setFcai(v1, v2);
+        System.out.println("Executing process: " + currentProcess.getName() + " at time " + currentTime + ", remaining burst time: " + currentProcess.getRemainingTime());
+        if (currentProcess.getRemainingTime() > 0) {
+            readyQueue.offer(currentProcess);
+        } else {
+            System.out.println("Process " + currentProcess.getName() + " finished execution at time " + currentTime);
+            done.add(currentProcess);
         }
     }
 
@@ -30,37 +45,42 @@ public class FCAISchedule implements ScheduleTechnique {
         int v1 = processList.get(processList.size() - 1).getArrivalTime();
         int v2 = getMaximumBurstTime(processList);
         factorSetter(processList, v1, v2);
+
         PriorityQueue<Process> readyQueue = new PriorityQueue<>(Comparator.comparing(Process::getFcai));
+        List<Process> done = new ArrayList<>();
         int totalExecutionTime = 0;
         for (int currentTime = 0; currentTime <= v1; currentTime++) {
-            Iterator<Process> iterator = new ArrayList<>(processList).iterator(); // Make a copy to avoid ConcurrentModificationException
-            while (iterator.hasNext()) {
-                Process process = iterator.next();
+            // Step 1: Check for new processes
+            for (Process process : processList) {
                 if (process.getArrivalTime() == currentTime) {
                     readyQueue.offer(process);
-                    iterator.remove();
+                    processList.remove(process);
                     System.out.println("Process " + process.getName() + " activated at time " + currentTime);
                 }
             }
 
+            // Step 2: Execute processes
             if (!readyQueue.isEmpty()) {
-                Process currentProcess = readyQueue.poll();
-                System.out.println("Executing process: " + currentProcess.getName());
-
-                // Decrease burst time for 1 second
-                currentProcess.setRemainingTime(currentProcess.getRemainingTime() - 1);
-                totalExecutionTime++;
-                System.out.println("Process " + currentProcess.getName() + " remaining burst time: " + currentProcess.getRemainingTime());
-
-                // If the process is not finished, re-add it to the queue
-                if (currentProcess.getRemainingTime() > 0) {
-                    readyQueue.offer(currentProcess);
+                if (readyQueue.size() == 1) {
+                    executeProcess(readyQueue, v1, v2, currentTime, done);
+                    totalExecutionTime++;
                 } else {
-                    System.out.println("Process " + currentProcess.getName() + " finished execution at time " + currentTime);
+                    Process process1 = readyQueue.poll();
+                    Process process2 = readyQueue.poll();
+                    double calc = process1.getNewQuant() / process1.getQuantum();
+                    if (calc > 0.4 && process1.getFcai() > process2.getFcai()) {
+                        readyQueue.offer(process1);
+                        readyQueue.offer(process2);
+                    } else {
+                        readyQueue.offer(process2);
+                        readyQueue.offer(process1);
+                    }
+                    executeProcess(readyQueue, v1, v2, currentTime, done);
                 }
+            } else {
+                System.out.println("CPU idle at time " + currentTime);
             }
         }
-
         return totalExecutionTime;
     }
 }

@@ -1,9 +1,9 @@
 
 public class Process {
 
-    private final int arrivalTime, burstTime, priority;
+    private final int arrivalTime, burstTime, priority, quantum;
     private final String name, color;
-    private int quantum, remainingTime, waitTime, fcai_factor;
+    private int new_quant, remainingTime, waitTime, fcai_factor;
 
     public Process(String name, String color, int arrivalTime, int burstTime, int priority, int quantum) {
         this.name = name;
@@ -14,6 +14,7 @@ public class Process {
         this.quantum = quantum;
         this.priority = priority;
         this.waitTime = 0;
+        this.new_quant = 0;
     }
 
     // Getters start here-------------------------------------------------
@@ -41,30 +42,40 @@ public class Process {
         return quantum;
     }
 
+    public int getNewQuant() {
+        return new_quant;
+    }
+
     public int getPriority() {
         return priority;
+
+    }
+
+    public int getFcai() {
+        return fcai_factor;
+
+    }
+
+    public int getWaitTime() {
+        return waitTime;
     }
     // Getters end here-------------------------------------------------
 
     // Setters start here-------------------------------------------------
-    public void setRemainingTime(int remainingTime) {
-        this.remainingTime = remainingTime;
+    public void decrementRemainingTime() {
+        this.remainingTime--;
     }
 
-    public void setFcai(int fcai_factor) {
-        this.fcai_factor = fcai_factor;
+    public void setFcai(int v1, int v2) {
+        this.fcai_factor = (int) Math.ceil((10 - priority) + (arrivalTime / v1) + (remainingTime / v2));
     }
 
-    public double getFcai() {
-        return fcai_factor;
+    public void updateQuantum() {
+        this.new_quant++;
     }
 
-    public void setQuantum(int quantum) {
-        this.quantum = quantum;
-    }
-
-    public void setWaitTime(int waitTime) {
-        this.waitTime = waitTime;
+    public void incrementWaitTime() {
+        this.waitTime++;
     }
     // Setters end here-------------------------------------------------
 }
