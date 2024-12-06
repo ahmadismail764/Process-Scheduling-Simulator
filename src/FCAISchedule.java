@@ -3,25 +3,6 @@ import java.util.*;
 
 public class FCAISchedule implements ScheduleTechnique {
 
-    public static int getMaximumBurstTime(List<Process> processes) {
-        if (processes == null || processes.isEmpty()) {
-            return -1;
-        }
-        int maxBurst = processes.get(0).getBurstTime();
-        for (Process process : processes) {
-            if (process.getBurstTime() > maxBurst) {
-                maxBurst = process.getBurstTime(); // Update if the current process has a greater burst time
-            }
-        }
-        return maxBurst;
-    }
-
-    public static void factorSetter(List<Process> processes, int v1, int v2) {
-        for (Process process : processes) {
-            process.setFcai(v1, v2);
-        }
-    }
-
     public static void executeProcess(PriorityQueue<Process> readyQueue, int v1, int v2, int currentTime, List<Process> done) {
         Process currentProcess = readyQueue.poll();
         for (Process process : readyQueue) {
@@ -43,9 +24,10 @@ public class FCAISchedule implements ScheduleTechnique {
     public int calculateExecutionTime(List<Process> processList) {
         processList.sort(Comparator.comparingInt(Process::getArrivalTime));
         int v1 = processList.get(processList.size() - 1).getArrivalTime();
-        int v2 = getMaximumBurstTime(processList);
-        factorSetter(processList, v1, v2);
-
+        int v2 = processList.stream().mapToInt(Process::getBurstTime).max().orElse(-1);
+        for (Process process : processList) {
+            process.setFcai(v1, v2);
+        }
         PriorityQueue<Process> readyQueue = new PriorityQueue<>(Comparator.comparing(Process::getFcai));
         List<Process> done = new ArrayList<>();
         int totalExecutionTime = 0;
