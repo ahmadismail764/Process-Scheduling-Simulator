@@ -1,10 +1,9 @@
 
 public class Process {
 
-    private final int arrivalTime, burstTime;
+    private final int arrivalTime, burstTime, priority;
     private final String name, color;
-    private int quantum, remainingTime, priority;
-    private double fcai_factor = 0;
+    private int quantum, remainingTime, waitTime, fcai_factor;
 
     public Process(String name, String color, int arrivalTime, int burstTime, int priority, int quantum) {
         this.name = name;
@@ -14,9 +13,14 @@ public class Process {
         this.remainingTime = burstTime;
         this.quantum = quantum;
         this.priority = priority;
+        this.waitTime = 0;
     }
 
     // Getters start here-------------------------------------------------
+    public final String getName() {
+        return name;
+    }
+
     public final String getColor() {
         return color;
     }
@@ -36,6 +40,7 @@ public class Process {
     public int getQuantum() {
         return quantum;
     }
+
     public int getPriority() {
         return priority;
     }
@@ -46,7 +51,7 @@ public class Process {
         this.remainingTime = remainingTime;
     }
 
-    public void setFcai(double fcai_factor) {
+    public void setFcai(int fcai_factor) {
         this.fcai_factor = fcai_factor;
     }
 
@@ -58,5 +63,8 @@ public class Process {
         this.quantum = quantum;
     }
 
+    public void setWaitTime(int waitTime) {
+        this.waitTime = waitTime;
+    }
     // Setters end here-------------------------------------------------
 }
