@@ -1,6 +1,6 @@
 
 public interface ScheduleTechnique {
 
-    public int calculateExecutionTime();
+    public void execution();
     // public int calculateExecutionTime(List<Process> processes);
 }

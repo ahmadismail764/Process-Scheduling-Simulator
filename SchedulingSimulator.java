@@ -3,7 +3,7 @@ import java.util.*;
 
 public class SchedulingSimulator {
 
-    List<Process> processList = new ArrayList<>();
+    static List<Process> processList = new ArrayList<>();
     int timeQuantum, contextSwitching;
 
     public void takeInInput() {
@@ -38,5 +38,8 @@ public class SchedulingSimulator {
         SchedulingSimulator simulator = new SchedulingSimulator();
         simulator.takeInInput();
         System.out.println("\nScheduling Simulation is ready to proceed with input parameters.");
+        FCAISchedule instance = new FCAISchedule(processList);
+        instance.execution();
+        instance.printStats();
     }
 }

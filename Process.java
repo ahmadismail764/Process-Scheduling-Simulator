@@ -72,8 +72,8 @@ public class Process {
     public List<Integer> getQuantumHistory() {
         return quantum_history;
     }
-    // Getters end here-------------------------------------------------
 
+    // Getters end here-------------------------------------------------
     // Setters start here-------------------------------------------------
     public void setFcai(int v1, int v2) {
         fcai_factor = (int) Math.ceil((10 - priority) + (arrivalTime / v1) + (remainingTime / v2));

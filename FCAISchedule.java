@@ -18,32 +18,7 @@ public class FCAISchedule implements ScheduleTechnique {
         done = new ArrayList<>();
     }
 
-    public static void executeNextProcess(LinkedList<Process> readyQueue, LinkedList<Process> availQueue, int v1, int v2, int currentTime, List<Process> done, int cycleCounter) {
-        Process currentProcess = availQueue.poll();
-        for (Process process : availQueue) {
-            process.incrementWaitTime();
-        }
-        currentProcess.decrementRemainingTime();
-        currentProcess.updateUsedQuantum();
-        currentProcess.setFcai(v1, v2);
-        System.out.println("Executing process: " + currentProcess.getName() + " at time " + currentTime + ", remaining burst time: " + currentProcess.getRemainingTime());
-        if (currentProcess.getUsedQuant() == currentProcess.getQuantum()) {
-            System.out.println("The process " + currentProcess.getName() + " has completed a quantum at time " + currentTime);
-            readyQueue.offer(currentProcess);
-            availQueue.pop();
-            cycleCounter++;
-            return;
-        }
-        if (currentProcess.getRemainingTime() > 0) {
-            availQueue.addFirst(currentProcess);
-        } else {
-            System.out.println("Process " + currentProcess.getName() + " finished execution at time " + currentTime);
-            currentProcess.setTurnAround(currentTime);
-            done.add(currentProcess);
-        }
-    }
-
-    public static void addProcessSorted(LinkedList<Process> queue, Process newProcess) {
+    public void addProcessSorted(LinkedList<Process> queue, Process newProcess) {
         // If the queue is empty, simply add the process
         if (queue.isEmpty()) {
             queue.add(newProcess);
@@ -63,11 +38,26 @@ public class FCAISchedule implements ScheduleTechnique {
         queue.add(position, newProcess);
     }
 
+    public void printStats() {
+        double avgTurnaround = done.stream().mapToInt(Process::getTurnAround).average().orElse(0);
+        double avgWait = done.stream().mapToInt(Process::getWaitTime).average().orElse(0);
+        for (Process process : done) {
+            System.out.println("Process " + process.getName() + " arrived at time " + process.getArrivalTime());
+            System.out.println(">>> " + process.getName() + " finished at time " + (process.getTurnAround() - process.getArrivalTime()));
+            System.out.println(">>> " + process.getName() + " waited for time " + process.getWaitTime() + "\n");
+            System.out.println(">>> The Quantuam Update History of " + process.getName() + ":");
+            System.out.println(String.join(" -> ", process.getQuantumHistory().stream().map(String::valueOf).toList()));
+        }
+        System.out.println("Average Waiting Time: " + avgWait);
+        System.out.println("Average TurnAround Time: " + avgTurnaround);
+    }
+
     @Override
-    public int calculateExecutionTime() {
+    public void execution() {
         LinkedList<Process> readyQueue = new LinkedList<>();
         LinkedList<Process> availQueue = new LinkedList<>();
         int currentTime = 0, cycleCounter = 0;
+        Process inCPU = null;
         while (!processes.isEmpty()) {
             // Check for new processes
             for (Process process : processes) {
@@ -77,52 +67,63 @@ public class FCAISchedule implements ScheduleTechnique {
                     System.out.println("Process " + process.getName() + " activated at time " + currentTime);
                 }
             }
-
-            // Head: p1-10
-            // List: p1-10, p2-7
-            // Execute processes
+            if (cycleCounter == processes.size()) {
+                for (Process process : readyQueue) {
+                    if (!availQueue.contains(process)) {
+                        process.resetUsedQuant();
+                        availQueue.offer(process);
+                    }
+                }
+                cycleCounter = 0;
+            }
             if (availQueue.isEmpty()) {
-                // To avoid idling
                 if (readyQueue.isEmpty()) {
                     System.out.println("CPU idle at time " + currentTime);
+                    continue;
                 } else {
-                    Process newProcess = readyQueue.peek();
-                    newProcess.resetUsedQuant();
-                    availQueue.addFirst(newProcess);
-                }
-            } else {
-                if (cycleCounter == processes.size()) {
                     for (Process process : readyQueue) {
-                        if (!availQueue.contains(process)) {
-                            process.resetUsedQuant();
-                            availQueue.offer(process);
-                        }
+                        addProcessSorted(availQueue, process);
                     }
-                    cycleCounter = 0;
                 }
+            }
 
-                if (availQueue.size() == 1) {
-                    executeNextProcess(readyQueue, availQueue, v1, v2, currentTime, done, cycleCounter);
-                    currentTime++;
-                } else {
-                    Process process1 = availQueue.poll();
-                    Process process2 = availQueue.poll();
-                    double calc = process1.getUsedQuant() / process1.getQuantum();
-                    if (calc > 0.4 && process1.getFcai() > process2.getFcai()) {
-                        availQueue.offer(process1);
-                        availQueue.offer(process2);
-                    } else {
-                        availQueue.offer(process2);
-                        availQueue.offer(process1);
-                        System.out.println(process2.getName() + " has preempted " + process1.getName() + " at time " + currentTime);
-                        process1.updateQuantumHistory(process1.getQuantum() - process1.getUsedQuant());
-                        process1.resetUsedQuant();
-                    }
-                    executeNextProcess(readyQueue, availQueue, v1, v2, currentTime, done, cycleCounter);
+            if (inCPU == null) {
+                inCPU = availQueue.poll();
+            } else {
+                double calc = inCPU.getUsedQuant() / inCPU.getQuantum();
+                if (calc > 0.4 && inCPU.getFcai() > availQueue.peek().getFcai()) {
+                    inCPU.updateQuantumHistory(inCPU.getQuantum() - inCPU.getUsedQuant());
+                    Process temp = inCPU;
+                    inCPU = availQueue.poll();
+                    readyQueue.pop();
+                    addProcessSorted(availQueue, temp);
+                    addProcessSorted(readyQueue, temp);
+
                 }
+            }
+            //------------------------------------------------------------------
+            readyQueue.pop();
+            for (Process process : readyQueue) {
+                process.incrementWaitTime();
+            }
+            inCPU.decrementRemainingTime();
+            inCPU.updateUsedQuantum();
+            inCPU.setFcai(v1, v2);
+            System.out.println("Executing process: " + inCPU.getName() + " at time " + currentTime + ", remaining burst time: " + inCPU.getRemainingTime());
+            if (inCPU.getUsedQuant() == inCPU.getQuantum()) {
+                System.out.println("The process " + inCPU.getName() + " has completed a quantum at time " + currentTime);
+                readyQueue.offer(inCPU);
+                inCPU = null;
+                cycleCounter++;
+            } else if (inCPU.getRemainingTime() == 0) {
+                System.out.println("Process " + inCPU.getName() + " finished execution at time " + currentTime);
+                inCPU.setTurnAround(currentTime);
+                done.add(inCPU);
+                inCPU = null;
+                processes.remove(inCPU);
             }
             currentTime++;
         }
-        return currentTime;
     }
+
 }
