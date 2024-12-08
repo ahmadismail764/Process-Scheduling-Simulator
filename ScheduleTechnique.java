@@ -1,7 +1,6 @@
 
-import java.util.*;
-
 public interface ScheduleTechnique {
 
-    public int calculateExecutionTime(List<Process> processes);
+    public int calculateExecutionTime();
+    // public int calculateExecutionTime(List<Process> processes);
 }
