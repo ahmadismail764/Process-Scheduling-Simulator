@@ -93,8 +93,9 @@ public class Process {
         used_quant = 0;
     }
 
+    // In the Process class
     public void decrementRemainingTime() {
-        this.remainingTime--;
+        remainingTime = Math.max(0, remainingTime - 1);
     }
 
     public void updateUsedQuantum() {

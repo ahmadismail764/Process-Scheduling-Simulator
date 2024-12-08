@@ -1,5 +1,6 @@
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FCAISchedule implements ScheduleTechnique {
 
@@ -41,12 +42,15 @@ public class FCAISchedule implements ScheduleTechnique {
     public void printStats() {
         double avgTurnaround = done.stream().mapToInt(Process::getTurnAround).average().orElse(0);
         double avgWait = done.stream().mapToInt(Process::getWaitTime).average().orElse(0);
+        System.out.println(done.stream().map(Process::getName).collect(Collectors.joining(" | ")));
         for (Process process : done) {
             System.out.println("Process " + process.getName() + " arrived at time " + process.getArrivalTime());
             System.out.println(">>> " + process.getName() + " finished at time " + (process.getTurnAround() - process.getArrivalTime()));
             System.out.println(">>> " + process.getName() + " waited for time " + process.getWaitTime() + "\n");
-            System.out.println(">>> The Quantuam Update History of " + process.getName() + ":");
-            System.out.println(String.join(" -> ", process.getQuantumHistory().stream().map(String::valueOf).toList()));
+            if (!process.getQuantumHistory().isEmpty()) {
+                System.out.println(">>> The Quantuam Update History of " + process.getName() + ":");
+                System.out.println(String.join(" -> ", process.getQuantumHistory().stream().map(String::valueOf).toList()));
+            }
         }
         System.out.println("Average Waiting Time: " + avgWait);
         System.out.println("Average TurnAround Time: " + avgTurnaround);
@@ -54,76 +58,104 @@ public class FCAISchedule implements ScheduleTechnique {
 
     @Override
     public void execution() {
+        // Initialize queues and tracking variables
         LinkedList<Process> readyQueue = new LinkedList<>();
         LinkedList<Process> availQueue = new LinkedList<>();
-        int currentTime = 0, cycleCounter = 0;
+        int currentTime = 0;
         Process inCPU = null;
-        while (!processes.isEmpty()) {
-            // Check for new processes
-            for (Process process : processes) {
-                if (process.getArrivalTime() == currentTime) {
+
+        // Create a copy of processes to avoid concurrent modification
+        List<Process> remainingProcesses = new ArrayList<>(processes);
+
+        while (true) {
+            // 1. Activate new processes
+            Iterator<Process> processIterator = remainingProcesses.iterator();
+            while (processIterator.hasNext()) {
+                Process process = processIterator.next();
+                if (process.getArrivalTime() <= currentTime) {
                     addProcessSorted(readyQueue, process);
                     addProcessSorted(availQueue, process);
                     System.out.println("Process " + process.getName() + " activated at time " + currentTime);
-                }
-            }
-            if (cycleCounter == processes.size()) {
-                for (Process process : readyQueue) {
-                    if (!availQueue.contains(process)) {
-                        process.resetUsedQuant();
-                        availQueue.offer(process);
-                    }
-                }
-                cycleCounter = 0;
-            }
-            if (availQueue.isEmpty()) {
-                if (readyQueue.isEmpty() && inCPU == null) {
-                    System.out.println("CPU idle at time " + currentTime);
-                    continue;
-                } else {
-                    for (Process process : readyQueue) {
-                        addProcessSorted(availQueue, process);
-                    }
+                    processIterator.remove();
                 }
             }
 
+            // 2. Termination check
+            if (remainingProcesses.isEmpty() && readyQueue.isEmpty() && availQueue.isEmpty() && inCPU == null) {
+                break;
+            }
+
+            // 3. Select process for CPU
             if (inCPU == null) {
-                inCPU = availQueue.poll();
-            } else {
-                double calc = inCPU.getUsedQuant() / inCPU.getQuantum();
-                if (calc > 0.4 && inCPU.getFcai() > availQueue.peek().getFcai()) {
-                    inCPU.updateQuantumHistory(inCPU.getQuantum() - inCPU.getUsedQuant());
-                    Process temp = inCPU;
+                if (!availQueue.isEmpty()) {
                     inCPU = availQueue.poll();
-                    readyQueue.pop();
-                    addProcessSorted(availQueue, temp);
-                    addProcessSorted(readyQueue, temp);
-
+                    System.out.println("Selected process: " + inCPU.getName());
+                } else if (readyQueue.isEmpty() && remainingProcesses.isEmpty()) {
+                    // If no processes are available, increment time
+                    currentTime++;
+                    continue;
                 }
             }
-            //------------------------------------------------------------------
-            readyQueue.pop();
+
+            // 4. Preemption logic
+            if (inCPU != null && availQueue.size() > 1) {
+                double usageRatio = (double) inCPU.getUsedQuant() / inCPU.getQuantum();
+                if (usageRatio > 0.4 && inCPU.getFcai() > availQueue.peek().getFcai()) {
+                    // Store current process and preempt
+                    inCPU.updateQuantumHistory(inCPU.getQuantum() - inCPU.getUsedQuant());
+                    Process preemptedProcess = inCPU;
+
+                    // Select new process
+                    inCPU = availQueue.poll();
+
+                    // Reinsert preempted process
+                    readyQueue.remove(preemptedProcess);
+                    addProcessSorted(availQueue, preemptedProcess);
+                    addProcessSorted(readyQueue, preemptedProcess);
+
+                    System.out.println("Preempted " + preemptedProcess.getName()
+                            + ", new process: " + inCPU.getName());
+                }
+            }
+
+            // 5. Process Execution
+            if (inCPU != null) {
+                System.out.println("Executing process: " + inCPU.getName()
+                        + " at time " + currentTime
+                        + ", remaining burst time: " + inCPU.getRemainingTime());
+
+                // Execute process
+                inCPU.decrementRemainingTime();
+                inCPU.updateUsedQuantum();
+                inCPU.setFcai(v1, v2);
+
+                // 6. Process Completion Checks
+                if (inCPU.getUsedQuant() >= inCPU.getQuantum()) {
+                    // Process completed its quantum
+                    System.out.println("Process " + inCPU.getName()
+                            + " completed quantum at time " + currentTime);
+                    readyQueue.offer(inCPU);
+                    inCPU = null;
+                } else if (inCPU.getRemainingTime() <= 0) {
+                    // Process fully completed
+                    System.out.println("Process " + inCPU.getName()
+                            + " finished execution at time " + currentTime);
+                    inCPU.setTurnAround(currentTime);
+                    done.add(inCPU);
+                    inCPU = null;
+
+                    // Remove from available queue if it exists
+                    availQueue.remove(inCPU);
+                }
+            }
+
+            // 7. Update wait times
             for (Process process : readyQueue) {
                 process.incrementWaitTime();
             }
-            inCPU.decrementRemainingTime();
-            inCPU.updateUsedQuantum();
-            inCPU.setFcai(v1, v2);
-            System.out.println("Executing process: " + inCPU.getName() + " at time " + currentTime + ", remaining burst time: " + inCPU.getRemainingTime());
-            if (inCPU.getUsedQuant() == inCPU.getQuantum()) {
-                System.out.println("The process " + inCPU.getName() + " has completed a quantum at time " + currentTime);
-                readyQueue.offer(inCPU);
-                inCPU = null;
-                cycleCounter++;
-            } else if (inCPU.getRemainingTime() == 0) {
-                System.out.println("Process " + inCPU.getName() + " finished execution at time " + currentTime);
-                inCPU.setTurnAround(currentTime);
-                done.add(inCPU);
-                inCPU = null;
-                processes.remove(inCPU);
-            }
+
+            // Increment time
             currentTime++;
         }
     }
-
 }
