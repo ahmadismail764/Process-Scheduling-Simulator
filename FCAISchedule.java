@@ -3,7 +3,7 @@ import java.util.*;
 
 public class FCAISchedule implements ScheduleTechnique {
 
-    private int v1, v2;
+    private final int v1, v2;
     private final List<Process> processes;
     private final List<Process> done;
 
