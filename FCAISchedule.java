@@ -77,7 +77,7 @@ public class FCAISchedule implements ScheduleTechnique {
                 cycleCounter = 0;
             }
             if (availQueue.isEmpty()) {
-                if (readyQueue.isEmpty()) {
+                if (readyQueue.isEmpty() && inCPU == null) {
                     System.out.println("CPU idle at time " + currentTime);
                     continue;
                 } else {
