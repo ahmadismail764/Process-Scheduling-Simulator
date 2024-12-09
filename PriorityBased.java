@@ -24,11 +24,25 @@ public class PriorityBased implements SchedTechnique {
 
             Process leastPriorityProcess = Collections.min(running, Comparator.comparingInt(Process::getPriority));
             if (inCPU == null) {
+                time += contextSwitch;
+                for (Process process : running) {
+                    if (process != inCPU) {
+                        process.incrementWaitTime(contextSwitch);
+                    }
+                    process.incrementTurnaround(contextSwitch);
+                }
                 inCPU = leastPriorityProcess;
                 time++;
                 continue;
             }
             if (leastPriorityProcess.getPriority() < inCPU.getPriority()) {
+                time += contextSwitch;
+                for (Process process : running) {
+                    if (process != inCPU) {
+                        process.incrementWaitTime(contextSwitch);
+                    }
+                    process.incrementTurnaround(contextSwitch);
+                }
                 inCPU = leastPriorityProcess;
             }
 
@@ -55,9 +69,9 @@ public class PriorityBased implements SchedTechnique {
                     process.decPriority(time);
                 }
                 if (process != inCPU) {
-                    process.incrementWaitTime();
+                    process.incrementWaitTime(1);
                 }
-                process.incrementTurnaround();
+                process.incrementTurnaround(1);
 
                 // If no processes are currently in the CPU, just increment time
                 if (inCPU != null && inCPU.getRemainingTime() == 0) {
