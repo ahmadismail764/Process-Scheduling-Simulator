@@ -31,6 +31,11 @@ public class FCAISchedule implements ScheduleTechnique {
         for (Process process : queue) {
             if (newProcess.getFcai() < process.getFcai()) { // Lower FCAI has higher priority
                 break; // Insert at the current position
+            } else if (newProcess.getFcai() == process.getFcai()) {
+                // If FCAI values are equal, compare priorities
+                if (newProcess.getPriority() > process.getPriority()) {
+                    break; // Higher priority (larger value) comes first
+                }
             }
             position++;
         }
@@ -86,76 +91,67 @@ public class FCAISchedule implements ScheduleTechnique {
             }
 
             // 3. Select process for CPU
-            if (inCPU == null) {
-                if (!availQueue.isEmpty()) {
-                    inCPU = availQueue.poll();
-                    System.out.println("Selected process: " + inCPU.getName());
-                } else if (readyQueue.isEmpty() && remainingProcesses.isEmpty()) {
-                    // If no processes are available, increment time
-                    currentTime++;
-                    continue;
-                }
+            if (inCPU == null && !availQueue.isEmpty()) {
+                inCPU = availQueue.poll();
+                System.out.println("Selected process: " + inCPU.getName());
             }
 
             // 4. Preemption logic
-            if (inCPU != null && availQueue.size() > 1) {
+            if (inCPU != null && availQueue.peek() != null && availQueue.size() > 1) {
                 double usageRatio = (double) inCPU.getUsedQuant() / inCPU.getQuantum();
-                if (usageRatio > 0.4 && inCPU.getFcai() > availQueue.peek().getFcai()) {
-                    // Store current process and preempt
+                if (usageRatio > 0.4
+                        && (inCPU.getFcai() > availQueue.peek().getFcai()
+                        || (inCPU.getFcai() == availQueue.peek().getFcai() && inCPU.getPriority() > availQueue.peek().getPriority()))) {
+                    // Preempt the current process
                     inCPU.updateQuantumHistory(inCPU.getQuantum() - inCPU.getUsedQuant());
                     Process preemptedProcess = inCPU;
 
                     // Select new process
                     inCPU = availQueue.poll();
 
-                    // Reinsert preempted process
+                    // Reinsert the preempted process
                     readyQueue.remove(preemptedProcess);
                     addProcessSorted(availQueue, preemptedProcess);
                     addProcessSorted(readyQueue, preemptedProcess);
 
-                    System.out.println("Preempted " + preemptedProcess.getName()
-                            + ", new process: " + inCPU.getName());
+                    System.out.println("Preempted " + preemptedProcess.getName() + ", new process: " + inCPU.getName());
                 }
             }
-
-            // 5. Process Execution
-            if (inCPU != null) {
-                System.out.println("Executing process: " + inCPU.getName()
-                        + " at time " + currentTime
-                        + ", remaining burst time: " + inCPU.getRemainingTime());
-
-                // Execute process
-                inCPU.decrementRemainingTime();
-                inCPU.updateUsedQuantum();
-                inCPU.setFcai(v1, v2);
-
-                // 6. Process Completion Checks
-                if (inCPU.getUsedQuant() >= inCPU.getQuantum()) {
-                    // Process completed its quantum
-                    System.out.println("Process " + inCPU.getName()
-                            + " completed quantum at time " + currentTime);
-                    readyQueue.offer(inCPU);
-                    inCPU = null;
-                } else if (inCPU.getRemainingTime() <= 0) {
-                    // Process fully completed
-                    System.out.println("Process " + inCPU.getName()
-                            + " finished execution at time " + currentTime);
-                    inCPU.setTurnAround(currentTime);
-                    done.add(inCPU);
-                    inCPU = null;
-
-                    // Remove from available queue if it exists
-                    availQueue.remove(inCPU);
-                }
-            }
-
-            // 7. Update wait times
-            for (Process process : readyQueue) {
-                process.incrementWaitTime();
-            }
-
-            // Increment time
-            currentTime++;
         }
+
+        // 5. Process Execution
+        if (inCPU != null) {
+            System.out.println("Executing process: " + inCPU.getName()
+                    + " at time " + currentTime
+                    + ", remaining burst time: " + inCPU.getRemainingTime());
+
+            // Execute the process
+            inCPU.decrementRemainingTime();
+            inCPU.updateUsedQuantum();
+            inCPU.setFcai(v1, v2);
+
+            // 6. Process Completion Checks
+            if (inCPU.getUsedQuant() >= inCPU.getQuantum()) {
+                // Process completed its quantum
+                System.out.println("Process " + inCPU.getName() + " completed quantum at time " + currentTime);
+                addProcessSorted(readyQueue, inCPU);
+                inCPU = null;
+            } else if (inCPU.getRemainingTime() == 0) {
+                // Process fully completed
+                System.out.println("Process " + inCPU.getName() + " finished execution at time " + currentTime);
+                inCPU.setTurnAround(currentTime);
+                done.add(inCPU);
+
+                // Remove from available queue
+                availQueue.remove(inCPU);
+                inCPU = null;
+            }
+        }
+
+        // 7. Update wait times
+        for (Process process : readyQueue) {
+            process.incrementWaitTime();
+        }
+        currentTime++;
     }
 }
