@@ -1,36 +1,39 @@
-
 import java.util.*;
 
 public class SRTF implements SchedTechnique {
 
-    int avgWT = 0, avgTAT = 0;
+    int totalWT = 0, totalTAT = 0;
 
     @Override
     public void execute(List<Process> processes, int contextSwitch) {
         List<Process> running = new ArrayList<>();
         int i = 0, time = 0;
-        int finish_count = 0;
+        int finishCount = 0;
         Process inCPU = null;
 
-        while (finish_count < processes.size()) {
-            // continuously checking if new processes arrive until all processes have arrived
+        while (finishCount < processes.size()) {
+            // Add newly arrived processes to the running list
             while (i < processes.size() && processes.get(i).getArrivalTime() <= time) {
                 running.add(processes.get(i));
                 i++;
             }
-            // if still no processes arrived just increment time
+
+            // If no processes are ready, increment time and continue
             if (running.isEmpty()) {
                 time++;
                 continue;
             }
-            // get stortest remaining time process
-            Process SRTP = Collections.min(running, Comparator.comparingInt(Process::getEffBurstTime));
-            int maxWaitTime = Collections.max(running, Comparator.comparingInt(Process::getWaitTime)).getWaitTime();
-            int minWaitTime = Collections.min(running, Comparator.comparingInt(Process::getWaitTime)).getWaitTime();
-            int median = maxWaitTime - minWaitTime;
+
+            // Get the process with the shortest remaining time
+            Process SRTP = Collections.min(running, Comparator.comparingInt(Process::getRemainingTime));
             Process maxWaitProcess = Collections.max(running, Comparator.comparingInt(Process::getWaitTime));
 
-            // starvation => if the max waiting process it waiting above median by 3 it is executed
+            // Calculate median waiting time
+            int maxWaitTime = maxWaitProcess.getWaitTime();
+            int minWaitTime = Collections.min(running, Comparator.comparingInt(Process::getWaitTime)).getWaitTime();
+            int median = maxWaitTime - minWaitTime;
+
+            // Starvation handling
             if (inCPU == null || SRTP.getRemainingTime() < inCPU.getRemainingTime()) {
                 if (maxWaitProcess.getWaitTime() > median + 3) {
                     inCPU = maxWaitProcess;
@@ -39,33 +42,44 @@ public class SRTF implements SchedTechnique {
                 }
             }
 
-            // decrementing remaining time for the executing process
+            // Execute the selected process for one unit of time
             inCPU.setRemainingTime(inCPU.getRemainingTime() - 1);
+            time++; // Increment time after executing
 
-            Iterator<Process> iterator = running.iterator(); // Using Iterator for safe removal
-            while (iterator.hasNext()) {
-                // removing finished processes from the running queue
-                Process process = iterator.next();
-                if (process.getRemainingTime() == 0) {
-                    // Printing terminated process required info
-                    System.out.printf("Process: %s\n", process.getName());
-                    System.out.printf("WT: %d\n", process.getWaitTime());
-                    System.out.printf("TAT: %d\n", process.getTurnAround());
-                    System.out.println("------------------------------");
-                    avgWT += process.getWaitTime();
-                    avgTAT += process.getTurnAround();
-                    finish_count++;
-                    iterator.remove();
+            // Check if the process has finished execution
+            if (inCPU.getRemainingTime() == 0) {
+                inCPU.setTurnAround(time - inCPU.getArrivalTime());
+                inCPU.setWaitTime(inCPU.getTurnAround() - inCPU.getBurstTime());
+
+                // Validate metrics to prevent negative or overflowed values
+                if (inCPU.getWaitTime() < 0) {
+                    inCPU.setWaitTime(0);
                 }
+
+                // Print process metrics
+                System.out.printf("Process: %s\n", inCPU.getName());
+                System.out.printf("WT: %d\n", inCPU.getWaitTime());
+                System.out.printf("TAT: %d\n", inCPU.getTurnAround());
+                System.out.println("------------------------------");
+
+                totalWT += inCPU.getWaitTime();
+                totalTAT += inCPU.getTurnAround();
+                finishCount++;
+                running.remove(inCPU); // Safely remove from running list
+                inCPU = null; // Reset CPU
+            }
+
+            // Increment waiting and turnaround times for all other processes
+            for (Process process : running) {
                 if (process != inCPU) {
                     process.incrementWaitTime();
                 }
                 process.incrementTurnaround();
             }
-            time++;
         }
-        // print overall statistics
-        System.out.printf("Average Waiting Time: %d \n", avgWT / finish_count);
-        System.out.printf("Average Turnaround Time: %d", avgTAT / finish_count);
+
+        // Print overall statistics
+        System.out.printf("Average Waiting Time: %.2f \n", (double) totalWT / processes.size());
+        System.out.printf("Average Turnaround Time: %.2f \n", (double) totalTAT / processes.size());
     }
 }
