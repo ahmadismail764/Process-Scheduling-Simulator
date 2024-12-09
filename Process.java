@@ -124,12 +124,12 @@ public class Process {
         used_quant++;
     }
 
-    public void incrementWaitTime() {
-        waitTime++;
+    public void incrementWaitTime(int time) {
+        waitTime+= time;
     }
 
-    public void incrementTurnaround() {
-        turnAround++;
+    public void incrementTurnaround(int time) {
+        turnAround+= time;
     }
 
     public void decEffBurstTime(int time) {
@@ -139,6 +139,7 @@ public class Process {
     public void decPriority(int time) {
         priority -= time / 3;
     }
+
     public void setWaitTime(int i) {this.waitTime = i; }
     // Updating functions end here--------------------------------------
 }
