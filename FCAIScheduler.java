@@ -3,9 +3,9 @@ import java.util.*;
 import static java.util.Comparator.*;
 import java.util.stream.*;
 
-public class FCAIScheduler {
+public class FCAIScheduler implements SchedTechnique {
 
-    public static int executeProcess(Process process, int v1, int v2) {
+    public int executeProcess(Process process, int v1, int v2) {
         process.decrementRemainingTime();
         if (process.getRemainingTime() == 0) {
             return 1;
@@ -25,7 +25,8 @@ public class FCAIScheduler {
         return Integer.compare(a.getPriority(), b.getPriority()); // Compare priorities if FCAIs are equal
     }
 
-    public static void fcaiScheduling(List<Process> processList, int contextSwitch) {
+    @Override
+    public void execute(List<Process> processList, int contextSwitch) {
         // Adjust input data
         int n = processList.size(), done_count = 0;
         processList.sort(comparingInt(Process::getArrivalTime));
@@ -63,7 +64,7 @@ public class FCAIScheduler {
                 process.incrementWaitTime();
             }
 
-            switch (executeProcess(inCPU, v1, v2)) {
+            switch (this.executeProcess(inCPU, v1, v2)) {
                 case 0 -> {
                     if (!readyQueue.isEmpty()) { // Check if you need to do a swap
                         double calc = (double) inCPU.getUsedQuant() / inCPU.getQuantum();

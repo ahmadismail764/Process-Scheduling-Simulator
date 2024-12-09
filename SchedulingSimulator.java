@@ -4,17 +4,12 @@ import java.util.*;
 
 public class SchedulingSimulator {
 
-    static List<Process> processList = new ArrayList<>();
-    static int timeQuantum, contextSwitch;
-
-    public void takeInInput() {
+    public List<Process> userInput() {
+        List<Process> processList = new ArrayList<>();
         try (Scanner scanner = new Scanner(System.in)) {
             System.out.print("Enter the number of processes: ");
             int numProcesses = scanner.nextInt();
-            System.out.print("Enter the Round Robin Time Quantum: ");
-            timeQuantum = scanner.nextInt();
-            System.out.print("Enter the Context Switching Time: ");
-            contextSwitch = scanner.nextInt();
+
             for (int i = 0; i < numProcesses; i++) {
                 System.out.println("\nEnter details for Process " + (i + 1) + ":");
                 System.out.print("Process Name: ");
@@ -34,15 +29,14 @@ public class SchedulingSimulator {
                 processList.add(process);
             }
         }
+        return processList;
     }
 
-    public void fileInput(String filename) {
+    public List<Process> fileInput(String filename) {
+        List<Process> processList = new ArrayList<>();
         try (Scanner scanner = new Scanner(new File(filename))) {
             // Read the number of processes, quantum, and context switching time
             int numProcesses = scanner.nextInt();
-            timeQuantum = scanner.nextInt();
-            contextSwitch = scanner.nextInt();
-
             // Read process details from the file
             for (int i = 0; i < numProcesses; i++) {
                 String name = scanner.next();
@@ -59,13 +53,22 @@ public class SchedulingSimulator {
         } catch (FileNotFoundException e) {
             System.err.println("Input file not found: " + e.getMessage());
         }
-
+        return processList;
     }
 
     public static void main(String[] args) {
+        System.out.println("\nSystem is ready to proceed with input\n");
+        int timeQuantum;
+        int contextSwitch;
+        try (Scanner scanner = new Scanner(System.in)) {
+            System.out.print("Enter the Time Quantum: ");
+            timeQuantum = scanner.nextInt();
+            System.out.print("Enter the Context Switching Time: ");
+            contextSwitch = scanner.nextInt();
+        }
         SchedulingSimulator simulator = new SchedulingSimulator();
-        simulator.fileInput("processes.txt");
-        System.out.println("\nScheduling Simulation is ready to proceed with input parameters.");
-        FCAIScheduler.fcaiScheduling(processList, contextSwitch);
+
+        SchedTechnique technique = new FCAIScheduler();
+        technique.execute(simulator.fileInput("input.txt"), contextSwitch);
     }
 }
