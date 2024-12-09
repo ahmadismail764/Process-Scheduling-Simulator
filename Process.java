@@ -139,5 +139,6 @@ public class Process {
     public void decPriority(int time) {
         priority -= time / 3;
     }
+    public void setWaitTime(int i) {this.waitTime = i; }
     // Updating functions end here--------------------------------------
 }
