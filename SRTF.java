@@ -35,6 +35,13 @@ public class SRTF implements SchedTechnique {
 
             // Starvation handling
             if (inCPU == null || SRTP.getRemainingTime() < inCPU.getRemainingTime()) {
+                time += contextSwitch;
+                for (Process process : running) {
+                    if (process != inCPU) {
+                        process.incrementWaitTime(contextSwitch);
+                    }
+                    process.incrementTurnaround(contextSwitch);
+                }
                 if (maxWaitProcess.getWaitTime() > median + 3) {
                     inCPU = maxWaitProcess;
                 } else {
@@ -72,9 +79,9 @@ public class SRTF implements SchedTechnique {
             // Increment waiting and turnaround times for all other processes
             for (Process process : running) {
                 if (process != inCPU) {
-                    process.incrementWaitTime();
+                    process.incrementWaitTime(1);
                 }
-                process.incrementTurnaround();
+                process.incrementTurnaround(1);
             }
         }
 
