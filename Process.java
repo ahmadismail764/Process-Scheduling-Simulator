@@ -3,7 +3,7 @@ import java.util.*;
 
 public class Process {
 
-    private int arrivalTime = 0, burstTime = 0, priority = 0, quantum = 0;
+    private int arrivalTime = 0, burstTime = 0, priority = 0, quantum = 0, completionTime = 0;
     private String name = null, color = null;
     private int used_quant, remainingTime, waitTime, fcai_factor, turnAround;
     private final List<Integer> quantum_history;
@@ -73,14 +73,22 @@ public class Process {
         return quantum_history;
     }
 
+    public int getCompletionTime() {
+        return completionTime;
+    }
+
     // Getters end here-------------------------------------------------
     // Setters start here-------------------------------------------------
     public void setFcai(int v1, int v2) {
         fcai_factor = (int) Math.ceil((10 - priority) + (arrivalTime / v1) + (remainingTime / v2));
     }
 
-    public void setTurnAround(int completionTime) {
-        turnAround = completionTime - arrivalTime;
+    public void setTurnAround() {
+        turnAround = waitTime + burstTime;
+    }
+
+    public void setCompletionTime(int t) {
+        completionTime = t;
     }
 
     // Setters end here-------------------------------------------------

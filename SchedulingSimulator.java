@@ -1,11 +1,11 @@
 
-import java.util.*;
 import java.io.*;
+import java.util.*;
 
 public class SchedulingSimulator {
 
     static List<Process> processList = new ArrayList<>();
-    int timeQuantum, contextSwitching;
+    static int timeQuantum, contextSwitch;
 
     public void takeInInput() {
         try (Scanner scanner = new Scanner(System.in)) {
@@ -14,7 +14,7 @@ public class SchedulingSimulator {
             System.out.print("Enter the Round Robin Time Quantum: ");
             timeQuantum = scanner.nextInt();
             System.out.print("Enter the Context Switching Time: ");
-            contextSwitching = scanner.nextInt();
+            contextSwitch = scanner.nextInt();
             for (int i = 0; i < numProcesses; i++) {
                 System.out.println("\nEnter details for Process " + (i + 1) + ":");
                 System.out.print("Process Name: ");
@@ -41,7 +41,7 @@ public class SchedulingSimulator {
             // Read the number of processes, quantum, and context switching time
             int numProcesses = scanner.nextInt();
             timeQuantum = scanner.nextInt();
-            contextSwitching = scanner.nextInt();
+            contextSwitch = scanner.nextInt();
 
             // Read process details from the file
             for (int i = 0; i < numProcesses; i++) {
@@ -64,11 +64,8 @@ public class SchedulingSimulator {
 
     public static void main(String[] args) {
         SchedulingSimulator simulator = new SchedulingSimulator();
-        // simulator.takeInInput();
         simulator.fileInput("processes.txt");
         System.out.println("\nScheduling Simulation is ready to proceed with input parameters.");
-        FCAISchedule instance = new FCAISchedule(processList);
-        instance.execution();
-        instance.printStats();
+        FCAIScheduler.fcaiScheduling(processList, contextSwitch);
     }
 }
