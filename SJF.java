@@ -27,6 +27,13 @@ public class SJF implements SchedTechnique {
             Process SJP = Collections.min(running, Comparator.comparingInt(Process::getEffBurstTime));
 
             if (inCPU == null || SJP.getEffBurstTime() < inCPU.getEffBurstTime()) {
+                time += contextSwitch;
+                for (Process process : running) {
+                    if (process != inCPU) {
+                        process.incrementWaitTime(contextSwitch);
+                    }
+                    process.incrementTurnaround(contextSwitch);
+                }
                 inCPU = SJP;
             }
             inCPU.setRemainingTime(inCPU.getRemainingTime() - 1);
@@ -56,9 +63,9 @@ public class SJF implements SchedTechnique {
                     process.decEffBurstTime(time);
                 }
                 if (process != inCPU) {
-                    process.incrementWaitTime();
+                    process.incrementWaitTime(1);
                 }
-                process.incrementTurnaround();
+                process.incrementTurnaround(1);
 
             }
             time++;
