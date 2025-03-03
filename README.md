@@ -16,16 +16,21 @@ CPU scheduling is a fundamental aspect of operating systems, determining which p
 ## FCAI Scheduling
 
 ### Key Components
+Here’s a cleaner and more precise version of your formula with improved readability:  
 
-- **Dynamic FCAI Factor**:
+### **Dynamic FCAI Factor**  
 
-  - Combines **Priority (P)**, **Arrival Time (AT)**, and **Remaining Burst Time (RBT)**:
-    \[
-    \text{FCAI Factor} = (10 - P) + \frac{\text{AT}}{V_1} + \frac{\text{RBT}}{V_2}
-    \]
-    Where:
-    - \( V_1 = \frac{\text{Last Arrival Time of All Processes}}{10} \)
-    - \( V_2 = \frac{\text{Max Burst Time of All Processes}}{10} \)
+The **FCAI Factor** is calculated using **Priority (P)**, **Arrival Time (AT)**, and **Remaining Burst Time (RBT)** as follows:  
+
+\[
+\text{FCAI Factor} = (10 - P) + \frac{\text{AT}}{V_1} + \frac{\text{RBT}}{V_2}
+\]
+
+Where:  
+- \( V_1 = \frac{\text{Last Arrival Time of All Processes}}{10} \)  
+- \( V_2 = \frac{\text{Maximum Burst Time of All Processes}}{10} \)  
+
+This ensures that **priority, arrival time, and burst time dynamically influence scheduling decisions**.  
 
 - **Quantum Allocation Rules**:
 
