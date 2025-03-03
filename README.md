@@ -1,4 +1,4 @@
-# CPU Schedulers Simulator
+  # CPU Schedulers Simulator
 
 This project simulates various CPU scheduling algorithms as part of **CS341 – Operating Systems 1** at **Cairo University, Faculty of Computers & Artificial Intelligence**.
 
@@ -12,25 +12,19 @@ CPU scheduling is a fundamental aspect of operating systems, determining which p
 - **FCAI Scheduling**: An adaptive algorithm combining priority, arrival time, and remaining burst time.
 
 ---
+## Dynamic FCAI Factor
 
-## FCAI Scheduling
+The **FCAI Factor** is calculated using **Priority (P)**, **Arrival Time (AT)**, and **Remaining Burst Time (RBT)** as follows:
 
-### Key Components
-Here’s a cleaner and more precise version of your formula with improved readability:  
-
-### **Dynamic FCAI Factor**  
-
-The **FCAI Factor** is calculated using **Priority (P)**, **Arrival Time (AT)**, and **Remaining Burst Time (RBT)** as follows:  
-
-\[
-\text{FCAI Factor} = (10 - P) + \frac{\text{AT}}{V_1} + \frac{\text{RBT}}{V_2}
-\]
+**FCAI Factor** = (10 - P) + (AT / V₁) + (RBT / V₂)
 
 Where:  
-- \( V_1 = \frac{\text{Last Arrival Time of All Processes}}{10} \)  
-- \( V_2 = \frac{\text{Maximum Burst Time of All Processes}}{10} \)  
 
-This ensures that **priority, arrival time, and burst time dynamically influence scheduling decisions**.  
+- **V₁** = (Last Arrival Time of All Processes) ÷ 10  
+
+- **V₂** = (Maximum Burst Time of All Processes) ÷ 10  
+
+This ensures that **priority, arrival time, and burst time dynamically influence scheduling decisions**.
 
 - **Quantum Allocation Rules**:
 
