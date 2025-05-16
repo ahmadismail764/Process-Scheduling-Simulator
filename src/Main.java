@@ -1,8 +1,7 @@
-
 import java.io.*;
 import java.util.*;
 
-public class SchedulingSimulator {
+public class Main {
 
     public List<Process> userInput() {
         List<Process> processList = new ArrayList<>();
@@ -66,9 +65,9 @@ public class SchedulingSimulator {
             System.out.print("Enter the Context Switching Time: ");
             contextSwitch = scanner.nextInt();
         }
-        SchedulingSimulator simulator = new SchedulingSimulator();
+        // SchedulingSimulator simulator = new SchedulingSimulator(); // Removed, class does not exist
 
         SchedTechnique technique = new FCAIScheduler();
-        technique.execute(simulator.fileInput("input.txt"), contextSwitch);
+        technique.execute(new Main().fileInput("input.txt"), contextSwitch);
     }
 }

@@ -1,4 +1,3 @@
-
 import java.util.*;
 import static java.util.Comparator.*;
 import java.util.stream.*;
@@ -61,7 +60,7 @@ public class FCAIScheduler implements SchedTechnique {
             }
             // Execute the current process 
             for (Process process : readyQueue) {
-                process.incrementWaitTime();
+                process.incrementWaitTime(1);
             }
 
             switch (this.executeProcess(inCPU, v1, v2)) {
